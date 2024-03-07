@@ -1,0 +1,105 @@
+mql5
+#property copyright 'forexroboteasy.com'
+#property link      'https://www.forexroboteasy.com'
+#property version   '1.00'
+#property indicator_chart_window
+
+// Oscillator Candles Parameters
+input int OscillatorPeriod = 14;      // Period of the oscillator indicator
+input color BullishColor = Blue;      // Color for bullish candles
+input color BearishColor = Red;       // Color for bearish candles
+input int CustomParam1 = 5;           // Custom parameter 1
+input int CustomParam2 = 10;          // Custom parameter 2
+input int CustomParam3 = 15;          // Custom parameter 3
+input int CustomParam4 = 20;          // Custom parameter 4
+input int CustomParam5 = 25;          // Custom parameter 5
+
+// Oscillator Candles Indicator Initialization
+int OnInit()
+{
+   IndicatorSetString(INDICATOR_SHORTNAME, 'Oscillator Candles');
+   IndicatorSetInteger(INDICATOR_DIGITS, _Digits);
+   IndicatorSetString(INDICATOR_LEVELS, '');
+   
+   return(INIT_SUCCEEDED);
+}
+
+// Oscillator Candles Indicator Calculation
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+   int i;
+   int limit = rates_total - prev_calculated;
+   
+   if (prev_calculated == 0) {
+      // Draw the first candle
+      PlotCandle(0, open[0], high[0], low[0], close[0], BullishColor, BearishColor);
+   }
+   
+   for (i = 1; i < limit; i++) {
+      // Calculate the oscillator value
+      double oscillator = iCustom(NULL, 0, 'OscillatorIndicator', OscillatorPeriod, i);
+      
+      if (close[i] > open[i] && oscillator > CustomParam1) {
+         // Bullish candle
+         PlotCandle(i, open[i], high[i], low[i], close[i], BullishColor, BearishColor);
+      }
+      else if (close[i] < open[i] && oscillator < CustomParam1) {
+         // Bearish candle
+         PlotCandle(i, open[i], high[i], low[i], close[i], BullishColor, BearishColor);
+      }
+      else {
+         // Neutral candle
+         PlotCandle(i, open[i], high[i], low[i], close[i], Black, Black);
+      }
+   }
+   
+   return(rates_total);
+}
+
+// Function to plot the colored candles
+void PlotCandle(int index, double open, double high, double low, double close, color bullishColor, color bearishColor)
+{
+   if (close > open) {
+      // Bullish candle
+      SetIndexBuffer(0, close);
+      SetIndexBuffer(1, open);
+      SetIndexBuffer(2, high);
+      SetIndexBuffer(3, low);
+      
+      PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, close);
+      PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, open);
+      PlotIndexSetDouble(2, PLOT_EMPTY_VALUE, high);
+      PlotIndexSetDouble(3, PLOT_EMPTY_VALUE, low);
+      
+      PlotIndexSetInteger(0, PLOT_COLOR, bullishColor);
+      PlotIndexSetInteger(1, PLOT_COLOR, bullishColor);
+      PlotIndexSetInteger(2, PLOT_COLOR, bullishColor);
+      PlotIndexSetInteger(3, PLOT_COLOR, bullishColor);
+   }
+   else {
+      // Bearish candle
+      SetIndexBuffer(0, open);
+      SetIndexBuffer(1, close);
+      SetIndexBuffer(2, high);
+      SetIndexBuffer(3, low);
+      
+      PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, open);
+      PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, close);
+      PlotIndexSetDouble(2, PLOT_EMPTY_VALUE, high);
+      PlotIndexSetDouble(3, PLOT_EMPTY_VALUE, low);
+      
+      PlotIndexSetInteger(0, PLOT_COLOR, bearishColor);
+      PlotIndexSetInteger(1, PLOT_COLOR, bearishColor);
+      PlotIndexSetInteger(2, PLOT_COLOR, bearishColor);
+      PlotIndexSetInteger(3, PLOT_COLOR, bearishColor);
+   }
+}
